@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import numpy as np
 import pandas as pd
 import pickle
+import ast
 
 app = Flask(__name__)
 
@@ -28,10 +29,10 @@ def helper(dis):
     pre = [col for col in pre.values]
 
     med = medications[medications['Disease'] == dis]['Medication']
-    med = [med for med in med.values]
+    med = [item for sublist in med.apply(ast.literal_eval).values for item in sublist]
 
     die = diets[diets['Disease'] == dis]['Diet']
-    die = [die for die in die.values]
+    die = [item for sublist in die.apply(ast.literal_eval).values for item in sublist]
 
     wrkout = workout[workout['disease'] == dis] ['workout']
 
@@ -49,11 +50,6 @@ def get_predicted_value(patient_symptoms):
     for item in patient_symptoms:
         input_vector[symptoms_dict[item]] = 1
     return diseases_list[svc.predict([input_vector])[0]]
-
-
-
-
-
 
 
 @app.route("/")
@@ -82,6 +78,7 @@ def home():
                 my_medicine = []
                 for i in medications:
                     my_medicine.append(i)
+                    print(my_medicine)
 
                 return render_template('index.html', predicted_disease=predicted_disease, dis_des=dis_des,
                                        my_precautions=my_precautions, my_medicine=my_medicine, my_diet=rec_diet,
@@ -90,28 +87,6 @@ def home():
                 return render_template('index.html', message=str(e))
 
     return render_template('index.html')
-
-
-
-
-
-@app.route('/about')
-def about():
-    return render_template("about.html")
-# contact view funtion and path
-@app.route('/contact')
-def contact():
-    return render_template("contact.html")
-
-# developer view funtion and path
-@app.route('/developer')
-def developer():
-    return render_template("developer.html")
-
-# about view funtion and path
-@app.route('/blog')
-def blog():
-    return render_template("blog.html")
 
 if __name__ == "__main__" :
     app.run(debug=True)
